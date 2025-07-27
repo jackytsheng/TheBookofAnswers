@@ -38,7 +38,7 @@ query_filter = models.Filter(
                 match=models.MatchValue(value="cn"),
             ),
         ]
-    ),
+    )
 
 # Step 6: Perform search
 results = client.search(

@@ -27,3 +27,9 @@ python3 -m venv venv
 https://github.com/jadenzaleski/BibleTranslations/tree/master
 - cuv
 https://github.com/MaatheusGois/bible/blob/main/versions/zh/cuv.json
+
+
+## Start Backend
+`uvicorn controller:app --reload`
+visit
+`http://127.0.0.1:8000/docs`

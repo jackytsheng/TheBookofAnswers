@@ -1,12 +1,7 @@
 from dataclasses import dataclass
-
+from BaseModel import BibleMeta
 @dataclass
-class BibleVerse:
-    abbreviation: str
-    name: str
+class BibleVerse(BibleMeta):
     text: str
+    name: str
     book: str
-    chapter: int
-    verse: int
-    language: str
-    translation: str

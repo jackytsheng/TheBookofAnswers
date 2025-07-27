@@ -7,7 +7,7 @@ from tqdm import tqdm
 from BibleVerse import BibleVerse
 from BibleSchemaValidator import BibleSchemaValidator
 from Config import Config
-from id_generator import generate_qdrant_uuid_id, generate_bible_id
+from id_generator import generate_qdrant_uuid_id
 
 # Disable warning from model internally
 import warnings
@@ -68,8 +68,9 @@ for file in config.BIBLE_DIR.glob("*.json"):
         passage_text = f"passage: {verse.text}"
         embedding = model.encode(passage_text).tolist()
 
+        point_id = verse.id()
         point = PointStruct(
-            id=generate_qdrant_uuid_id(generate_bible_id(verse)),
+            id=generate_qdrant_uuid_id(point_id),
             vector=embedding,
             payload=payload
         )
