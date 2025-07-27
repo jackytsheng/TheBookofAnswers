@@ -2,9 +2,6 @@
   "$schema": "http://json-schema.org/schema#",
   "type": "object",
   "properties": {
-    "id": {
-      "type": "string"
-    },
     "name": {
       "type": "string"
     },
@@ -25,12 +22,15 @@
     },
     "translation": {
       "type": "string"
+    },
+    "abbreviation": {
+      "type": "string"
     }
   },
   "required": [
+    "abbreviation",
     "book",
     "chapter",
-    "id",
     "language",
     "name",
     "text",
