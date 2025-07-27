@@ -53,6 +53,6 @@ for i, res in enumerate(results, 1):
     res.payload["id"] = res.id
     verse = BibleVerse(**res.payload)
     score = res.score
-    print(f"{i}. Score: {score:.4f}")
+    print(f"{i}. {verse.name} [Score: {100*score:.4f}%]")
     print(verse.name)
     print(f"   {verse.text}\n")

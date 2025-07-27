@@ -1,5 +1,4 @@
 import json
-import uuid
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
@@ -8,6 +7,7 @@ from tqdm import tqdm
 from BibleVerse import BibleVerse
 from BibleSchemaValidator import BibleSchemaValidator
 from Config import Config
+from id_generator import generate_qdrant_uuid_id, generate_bible_id
 
 # Disable warning from model internally
 import warnings
@@ -29,18 +29,23 @@ if not qdrant.collection_exists(config.COLLECTION_NAME):
     print(f"🧱 Creating collection: {config.COLLECTION_NAME}")
     qdrant.create_collection(
         collection_name=config.COLLECTION_NAME,
-        vectors_config=VectorParams(size=config.VECTOR_DIM, distance=Distance.COSINE),
+        vectors_config=VectorParams(
+            size=config.VECTOR_DIM, distance=Distance.COSINE),
     )
 else:
     print(f"✅ Collection '{config.COLLECTION_NAME}' already exists.")
 
 # ---- Upload Helper ----
 total_upload_point = 0
+
+
 def upload_batch(batch):
     global total_upload_point
     if batch:
-        qdrant.upload_points(collection_name=config.COLLECTION_NAME, points=batch)
+        qdrant.upload_points(
+            collection_name=config.COLLECTION_NAME, points=batch)
         total_upload_point += len(batch)
+
 
 # Collect points from all JSON files in bibles/
 points = []
@@ -55,20 +60,16 @@ for file in config.BIBLE_DIR.glob("*.json"):
 
     for verse_raw in tqdm(verses, desc=f"Embedding {file.name}"):
         if not validator.is_valid(verse_raw):
-            invalid_verses.append({ "file": file.name, "verse": verse_raw })
+            invalid_verses.append({"file": file.name, "verse": verse_raw})
             continue
         verse = BibleVerse(**verse_raw)
         payload = verse.__dict__.copy()
-        payload.pop("id")  # remove id if it's passed separately
         # Prefix as required by the model
         passage_text = f"passage: {verse.text}"
         embedding = model.encode(passage_text).tolist()
 
-        # Turn id into uuid
-        point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, verse.id))
-
         point = PointStruct(
-            id=point_id,
+            id=generate_qdrant_uuid_id(generate_bible_id(verse)),
             vector=embedding,
             payload=payload
         )
@@ -86,4 +87,5 @@ if len(invalid_verses) != 0:
     print("\n❌ Invalid Verses:")
     for iv in invalid_verses:
         print(f"File: {iv['file']}, Verse: {iv['verse']}")
-print(f"\n✅ Done. Uploaded {total_upload_point} Bible verses with {len(invalid_verses)} invalid entries skipped.")
+print(
+    f"\n✅ Done. Uploaded {total_upload_point} Bible verses with {len(invalid_verses)} invalid entries skipped.")

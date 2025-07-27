@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class BibleVerse:
-    id: str
+    abbreviation: str
     name: str
     text: str
     book: str

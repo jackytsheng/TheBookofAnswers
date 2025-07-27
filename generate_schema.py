@@ -2,16 +2,16 @@ import json
 from genson import SchemaBuilder
 
 # Your sample JSON object
-sample =  {
-    "id": "act-28-28-cn-cuv",
-    "name": "Acts 28:28",
-    "text": "所以你們當知道，神這救恩，如今傳給外邦人，他們也必聽受。（有古卷在此有：",
-    "book": "Acts",
-    "chapter": 28,
-    "verse": 28,
-    "language": "cn",
-    "translation": "cuv"
-  },
+sample = {
+    'name': 'Acts 25:6',
+    'text': '非斯都在他們那裡住了不過十天八天，就下該撒利亞去；第二天坐堂，吩咐將保羅提上來。',
+    'book': 'Acts',
+    'chapter': 25,
+    'verse': 6,
+    'language': 'cn',
+    'translation': 'cuv',
+    'abbreviation': 'act'
+}
 
 # Generate schema
 builder = SchemaBuilder()
