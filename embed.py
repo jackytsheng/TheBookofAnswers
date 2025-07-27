@@ -5,70 +5,85 @@ from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, VectorParams, Distance
 from tqdm import tqdm
+from BibleVerse import BibleVerse
+from BibleSchemaValidator import BibleSchemaValidator
+from Config import Config
 
-# Config
-BIBLE_DIR = Path("bibles")
-COLLECTION_NAME = "bible" # to be replaced with something else
-MODEL_NAME = "intfloat/multilingual-e5-large"
-QDRANT_HOST = "localhost"
-QDRANT_PORT = 6333
-VECTOR_DIM = 1024  # required by multilingual-e5-large
+# Disable warning from model internally
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-# Load embedding model
+# Loading Config
+config = Config()
+
+# ---- Init ----
 print("🔍 Loading embedding model...")
-model = SentenceTransformer(MODEL_NAME)
+model = SentenceTransformer(config.MODEL_NAME)
 
-# Init Qdrant client
-qdrant = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
+qdrant = QdrantClient(host=config.QDRANT_HOST, port=config.QDRANT_PORT)
+validator = BibleSchemaValidator()
+invalid_verses = []
 
-# Create or reset collection
-print(f"🧱 Recreating collection: {COLLECTION_NAME}")
-# Delete and recreate safely
-if not qdrant.collection_exists(COLLECTION_NAME):
-    print(f"🧱 Creating collection: {COLLECTION_NAME}")
+# ---- Create Collection if not exists ----
+if not qdrant.collection_exists(config.COLLECTION_NAME):
+    print(f"🧱 Creating collection: {config.COLLECTION_NAME}")
     qdrant.create_collection(
-        collection_name=COLLECTION_NAME,
-        vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
+        collection_name=config.COLLECTION_NAME,
+        vectors_config=VectorParams(size=config.VECTOR_DIM, distance=Distance.COSINE),
     )
+else:
+    print(f"✅ Collection '{config.COLLECTION_NAME}' already exists.")
 
-# todo: add validation
+# ---- Upload Helper ----
+total_upload_point = 0
+def upload_batch(batch):
+    global total_upload_point
+    if batch:
+        qdrant.upload_points(collection_name=config.COLLECTION_NAME, points=batch)
+        total_upload_point += len(batch)
+
 # Collect points from all JSON files in bibles/
 points = []
 
-for file in BIBLE_DIR.glob("*.json"):
-    print(f"📖 Loading {file.name}...")
+# ---- Process Files One at a Time ----
+for file in config.BIBLE_DIR.glob("*.json"):
+    print(f"\n📖 Processing file: {file.name}")
     with file.open("r", encoding="utf-8") as f:
         verses = json.load(f)
 
-    for verse in tqdm(verses, desc=f"Embedding {file.name}"):
-        verse_id = verse.get("id","")
-        text = verse["text"]
-        book = verse["book"]
-        chapter = verse["chapter"]
-        verse_num = verse["verse"]
-        language = verse.get("language", "unknown")
-        name = verse.get("name", f"{book} {chapter}:{verse_num}")
+    batch = []
 
+    for verse_raw in tqdm(verses, desc=f"Embedding {file.name}"):
+        if not validator.is_valid(verse_raw):
+            invalid_verses.append({ "file": file.name, "verse": verse_raw })
+            continue
+        verse = BibleVerse(**verse_raw)
+        payload = verse.__dict__.copy()
+        payload.pop("id")  # remove id if it's passed separately
         # Prefix as required by the model
-        passage_text = f"passage: {text}"
+        passage_text = f"passage: {verse.text}"
         embedding = model.encode(passage_text).tolist()
 
-        point = PointStruct(
-            id=verse_id,
-            vector=embedding,
-            payload={
-                "name": name,
-                "text": text,
-                "book": book,
-                "chapter": chapter,
-                "verse": verse_num,
-                "language": language,
-                "source_file": file.name
-            }
-        )
-        points.append(point)
+        # Turn id into uuid
+        point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, verse.id))
 
-# Upload in chunks
-print(f"🚀 Uploading {len(points)} verses to Qdrant...")
-qdrant.upload_points(collection_name=COLLECTION_NAME, points=points)
-print("✅ Done.")
+        point = PointStruct(
+            id=point_id,
+            vector=embedding,
+            payload=payload
+        )
+        batch.append(point)
+        if len(batch) >= config.CHUNK_SIZE:
+            upload_batch(batch)
+            batch.clear()
+
+    # Upload remaining
+    if batch:
+        upload_batch(batch)
+
+# ---- Print Invalids ----
+if len(invalid_verses) != 0:
+    print("\n❌ Invalid Verses:")
+    for iv in invalid_verses:
+        print(f"File: {iv['file']}, Verse: {iv['verse']}")
+print(f"\n✅ Done. Uploaded {total_upload_point} Bible verses with {len(invalid_verses)} invalid entries skipped.")

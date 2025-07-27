@@ -1,0 +1,22 @@
+[
+  {
+    "id": "gn-1-1-cn-cuv",
+    "name": "Genesis 1:1",
+    "text": "起初，神創造天地。",
+    "book": "Genesis",
+    "chapter": 1,
+    "verse": 1,
+    "language": "cn",
+    "translation": "cuv"
+  },
+  {
+    "id": "gn-1-2-cn-cuv",
+    "name": "Genesis 1:2",
+    "text": "地是空虛混沌，淵面黑暗；神的靈運行在水面上。",
+    "book": "Genesis",
+    "chapter": 1,
+    "verse": 2,
+    "language": "cn",
+    "translation": "cuv"
+  }
+]
