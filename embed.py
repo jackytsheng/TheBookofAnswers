@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 config = Config()
 
 # ---- Init ----
-print("🔍 Loading embedding model...")
+print(f"🔍 Loading embedding model '{config.MODEL_NAME}'...")
 model = SentenceTransformer(config.MODEL_NAME)
 
 qdrant = QdrantClient(host=config.QDRANT_HOST, port=config.QDRANT_PORT)
