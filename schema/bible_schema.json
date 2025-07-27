@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "book": {
+      "type": "string"
+    },
+    "chapter": {
+      "type": "integer"
+    },
+    "verse": {
+      "type": "integer"
+    },
+    "language": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "book",
+    "chapter",
+    "id",
+    "language",
+    "name",
+    "text",
+    "verse"
+  ]
+}
