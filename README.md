@@ -33,3 +33,8 @@ https://github.com/MaatheusGois/bible/blob/main/versions/zh/cuv.json
 `uvicorn controller:app --reload`
 visit
 `http://127.0.0.1:8000/docs`
+
+
+## UI Design
+https://codepen.io/supah/pen/jqOBqp
+https://particles.js.org/
