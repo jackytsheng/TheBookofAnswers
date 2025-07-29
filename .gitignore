@@ -27,3 +27,4 @@ dist-ssr
 # Backend
 __pycache__
 .DS_Store
+qdrant-data

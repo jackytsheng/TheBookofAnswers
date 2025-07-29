@@ -11,10 +11,13 @@ app = FastAPI()
 
 # Define a request body schema
 
-
 class InputText(BaseModel):
     query_text: str
 
+
+@app.post("/ask")
+def process_text(input_data: InputText):
+    return client.query(input_data.query_text)
 
 @app.post("/ask")
 def process_text(input_data: InputText):

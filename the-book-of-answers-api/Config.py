@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 class Config:
@@ -25,8 +26,8 @@ class Config:
             self.BIBLE_DIR = Path("test_bibles")
 
         self.MODEL_NAME = "intfloat/multilingual-e5-large"
-        self.QDRANT_HOST = "localhost"
-        self.QDRANT_PORT = 6333
+        self.QDRANT_HOST =  os.getenv("QDRANT_HOST", "localhost")
+        self.QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
         self.VECTOR_DIM = 1024  # required by multilingual-e5-large
         self.CHUNK_SIZE = 500
         self.VERSE_SEARCH_LIMIT = 10
